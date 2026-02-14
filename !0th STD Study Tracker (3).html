@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SSC Mission 98% - HYPER-ANIMATED</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #020617;
+            --glass: rgba(15, 23, 42, 0.85);
+            --border: rgba(255, 255, 255, 0.1);
+            --accent: #38bdf8;
+            --text: #f8fafc;
+            --gold: #fbbf24;
+            --red: #ef4444;
+            --green: #10b981;
+        }
+
+        body { background-color: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; margin: 0; overflow-x: hidden; }
+        
+        body.victory-shake { 
+            animation: extreme-shake 0.05s infinite; 
+            background: radial-gradient(circle, #1e1b4b 0%, #000 100%) !important; 
+        }
+
+        @keyframes extreme-shake {
+            0% { transform: translate(5px, 5px) rotate(0.5deg); }
+            50% { transform: translate(-5px, -5px) rotate(-0.5deg); }
+            100% { transform: translate(0, 0); }
+        }
+
+        #bg-canvas { position: fixed; top: 0; left: 0; z-index: -1; pointer-events: none; }
+        .layout { display: grid; grid-template-columns: 320px 1fr; height: 100vh; position: relative; z-index: 1; }
+        @media (max-width: 1000px) { .layout { grid-template-columns: 1fr; height: auto; } }
+
+        .sidebar { background: var(--glass); backdrop-filter: blur(30px); border-right: 1px solid var(--border); padding: 40px 25px; overflow-y: auto; display: flex; flex-direction: column; }
+        .main-content { padding: 40px 60px; overflow-y: auto; }
+
+        .reset-btn { background: rgba(239, 68, 68, 0.1); border: 1px solid var(--red); color: var(--red); padding: 10px; border-radius: 8px; cursor: pointer; font-weight: 800; margin-bottom: 20px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .reset-btn:hover { background: var(--red); color: white; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); }
+
+        .master-container { background: var(--glass); padding: 30px; border-radius: 24px; border: 1px solid var(--border); margin-bottom: 40px; transition: transform 0.5s; }
+        
+        .bar-outer { background: rgba(0,0,0,0.6); border-radius: 50px; overflow: hidden; border: 1px solid var(--border); position: relative; }
+        .master-bar-outer { height: 22px; margin-top: 15px; }
+        #masterFill { height: 100%; width: 0%; transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 1s ease; box-shadow: 0 0 20px currentColor; }
+
+        .sub-bar-outer { height: 10px; margin: 10px 0 15px 0; }
+        .sub-fill { height: 100%; width: 0%; transition: width 0.8s cubic-bezier(0.17, 0.67, 0.83, 0.67), background-color 0.8s ease; }
+
+        .sub-card { 
+            background: var(--glass); border: 1px solid var(--border); border-radius: 20px; padding: 20px; 
+            margin-bottom: 20px; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); 
+            position: relative; overflow: hidden;
+        }
+        .sub-card:hover { transform: translateY(-8px) scale(1.02); border-color: var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .sub-card.fully-done { border: 2px solid var(--gold); box-shadow: 0 0 60px rgba(251, 191, 36, 0.6); transform: scale(1.05); }
+        
+        .task-btn { 
+            background: rgba(255,255,255,0.03); border: 1px solid var(--border); color: var(--text); 
+            padding: 12px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; cursor: pointer; 
+            width: 100%; margin-bottom: 6px; display: flex; justify-content: space-between; 
+            transition: all 0.2s; position: relative;
+        }
+        .task-btn:active { transform: scale(0.95); }
+        .task-btn.active { background: white; color: black; border: none; font-weight: 800; box-shadow: 0 0 15px rgba(255,255,255,0.3); }
+        
+        .final-revise-btn { background: linear-gradient(90deg, #f59e0b, #d97706); color: white; border: none; font-weight: 800; animation: pulse-glow 1.2s infinite; margin-top: 10px; }
+        @keyframes pulse-glow { 0% { transform: scale(1); box-shadow: 0 0 0px var(--gold); } 50% { transform: scale(1.05); box-shadow: 0 0 20px var(--gold); } 100% { transform: scale(1); box-shadow: 0 0 0px var(--gold); } }
+
+        .overlay-popup {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.5);
+            background: #0a0a0a; border: 3px solid var(--accent); padding: 40px; border-radius: 30px; 
+            text-align: center; z-index: 9999; visibility: hidden; opacity: 0; transition: 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: 0 0 100px rgba(56, 189, 248, 0.3); width: 450px;
+        }
+        .overlay-popup.active { visibility: visible; opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        
+        .close-pop { margin-top: 25px; background: var(--accent); border: none; padding: 12px 30px; border-radius: 12px; cursor: pointer; color: white; font-weight: 900; width: 100%; transition: 0.3s; }
+        .close-pop:hover { letter-spacing: 2px; filter: brightness(1.2); }
+
+        .tt-item { padding: 12px; border-radius: 12px; margin-bottom: 8px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); display: flex; justify-content: space-between; transition: 0.3s; }
+        .tt-item:hover { background: rgba(255,255,255,0.1); transform: translateX(5px); }
+    </style>
+</head>
+<body onclick="unlockAudio()">
+
+    <canvas id="bg-canvas"></canvas>
+
+    <div id="subPop" class="overlay-popup">
+        <h2 id="subPopTitle" style="color: var(--accent); font-family: 'Space Grotesk'; font-size: 2.5rem; margin-top:0;">DONE!</h2>
+        <p id="subPopMsg" style="font-size: 1.2rem; color: #cbd5e1; line-height: 1.6; font-weight: 500;"></p>
+        <button class="close-pop" onclick="closePop('subPop')">ON TO THE NEXT BATTLE</button>
+    </div>
+
+    <div id="finalPop" class="overlay-popup">
+        <h1 style="color: var(--gold); font-size: 3.5rem; text-shadow: 0 0 40px var(--gold); margin-top:0;">GOD MODE ENABLED</h1>
+        <p style="font-size: 1.4rem; color: white; line-height: 1.6;">Every single chapter, concept, and PYQ has been decimated.<br><b>The merit list is waiting for its new leader.</b></p>
+        <button class="close-pop" onclick="location.reload()">I AM THE LEGEND</button>
+    </div>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <button class="reset-btn" onclick="resetAll()">RESET ALL PROGRESS</button>
+            <h2 style="font-family: 'Space Grotesk'; font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 10px;">📅 SCHEDULE</h2>
+            <div id="timetable"></div>
+        </aside>
+
+        <main class="main-content">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <div id="global-timer" style="font-family: 'Space Grotesk'; font-size: 3.5rem; font-weight: 800; background: linear-gradient(to bottom, #fff, #64748b); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">00:00:00:00</div>
+                <span style="letter-spacing: 8px; color: var(--accent); font-size: 0.75rem; font-weight: 800; text-transform: uppercase;">Countdown to Glory</span>
+            </div>
+
+            <div class="master-container" id="masterBox">
+                <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                    <h2 style="font-family: 'Space Grotesk'; margin: 0; letter-spacing: 2px;">TOTAL SYNC</h2>
+                    <div id="masterPct" style="font-size: 4rem; font-weight: 900; text-shadow: 0 0 20px rgba(255,255,255,0.2);">0%</div>
+                </div>
+                <div class="bar-outer master-bar-outer"><div id="masterFill"></div></div>
+            </div>
+
+            <div id="trackerGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;"></div>
+        </main>
+    </div>
+
+    <script>
+        const subjects = [
+            { id: 'mar', name: 'Marathi', date: '2026-02-23T11:00:00', popTitle: 'उत्कृष्ट! 🚩', popMsg: 'Marathi Literature and Grammar are now under your complete control.\nYour expression will be flawless in the examination hall.', type: 'language' },
+            { id: 'san', name: 'Sanskrit', date: '2026-02-25T11:00:00', popTitle: 'सुवर्णम! ✨', popMsg: 'The language of the gods is now your greatest scoring weapon.\nEvery Shloka and Sandhi is perfectly etched in your memory.', type: 'language' },
+            { id: 'eng', name: 'English', date: '2026-02-27T11:00:00', popTitle: 'DOMINATED! 🎩', popMsg: 'Writing skills and textual analysis are now a walk in the park.\nYou are ready to articulate your way to a perfect score.', type: 'language' },
+            { id: 'mat1', name: 'Math I', date: '2026-03-06T11:00:00', popTitle: 'ALGEBRA KING! 📐', popMsg: 'Linear equations and probability hold no more secrets from you.\nCalculations are swift, accurate, and lethal.', type: 'math' },
+            { id: 'mat2', name: 'Math II', date: '2026-03-09T11:00:00', popTitle: 'THEOREM MASTER! 🔍', popMsg: 'Every geometric proof is now logically sound and ready for display.\nYou have mastered the art of spatial reasoning.', type: 'math' },
+            { id: 'sci1', name: 'Science 1', date: '2026-03-11T11:00:00', popTitle: 'ATOMIZED! ⚡', popMsg: 'Physics and Chemistry concepts have reached high stability.\nYour understanding of the material world is absolute.', type: 'other' },
+            { id: 'sci2', name: 'Science 2', date: '2026-03-13T11:00:00', popTitle: 'EVOLVED! 🌱', popMsg: 'From cells to ecosystems, you have mastered the cycle of life.\nBiology marks are now guaranteed.', type: 'other' },
+            { id: 'his', name: 'History', date: '2026-03-16T11:00:00', popTitle: 'CHRONICLE! 🏛️', popMsg: 'The past is understood, and the present is under your command.\nYou are ready to write your own legendary chapter.', type: 'other' },
+            { id: 'geo', name: 'Geography', date: '2026-03-18T11:00:00', popTitle: 'MAP MASTER! 🌍', popMsg: 'Resources, climate, and topography are all mapped out in your mind.\nThe entire world of Geography is yours to conquer.', type: 'other' }
+        ];
+
+        let audioCtx;
+        let victoryInterval;
+
+        function unlockAudio() {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
+
+        function resetAll() {
+            if(confirm("DANGER: This will wipe all progress. Are you sure?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        function closePop(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        function playPiano(step) {
+            const freqs = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99];
+            const now = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freqs[step-1] || 261, now);
+            g.gain.setValueAtTime(0.1, now);
+            g.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+            osc.connect(g); g.connect(audioCtx.destination);
+            osc.start(); osc.stop(now + 0.8);
+        }
+
+        function playVictoryAnthem() {
+            const now = audioCtx.currentTime;
+            const notes = [220, 277, 330, 440, 554, 659, 880, 1108];
+            notes.forEach((f, i) => {
+                const osc = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                osc.type = i % 2 === 0 ? 'sawtooth' : 'square';
+                osc.frequency.setValueAtTime(f, now + (i * 0.1));
+                g.gain.setValueAtTime(0.05, now + (i * 0.1));
+                g.gain.exponentialRampToValueAtTime(0.001, now + (i * 0.1) + 1.2);
+                osc.connect(g); g.connect(audioCtx.destination);
+                osc.start(now + (i * 0.1)); osc.stop(now + (i * 0.1) + 1.2);
+            });
+        }
+
+        function toggleTask(id, type) {
+            unlockAudio();
+            const key = id + '_' + type;
+            const wasTrue = localStorage.getItem(key) === 'true';
+            localStorage.setItem(key, !wasTrue);
+            
+            if(!wasTrue) {
+                const count = ['rev', 'pyq', 'nav', 'ext', 'final'].filter(t => localStorage.getItem(id + '_' + t) === 'true').length;
+                playPiano(count);
+
+                if(type === 'final') {
+                    const sub = subjects.find(s => s.id === id);
+                    document.getElementById('subPopTitle').innerText = sub.popTitle;
+                    document.getElementById('subPopMsg').innerHTML = sub.popMsg.replace(/\n/g, '<br>');
+                    document.getElementById('subPop').classList.add('active');
+                    confetti({ particleCount: 200, spread: 100, origin: { y: 0.6 } });
+                }
+            }
+            render();
+        }
+
+        function getDynamicColor(percent) {
+            if (percent < 50) {
+                const ratio = percent / 50;
+                const r = 239; 
+                const g = Math.floor(68 + (181 - 68) * ratio); 
+                const b = Math.floor(68 + (8 - 68) * ratio);
+                return `rgb(${r}, ${g}, ${b})`;
+            } else {
+                const ratio = (percent - 50) / 50;
+                const r = Math.floor(239 + (16 - 239) * ratio);
+                const g = Math.floor(181 + (185 - 181) * ratio);
+                const b = Math.floor(8 + (129 - 8) * ratio);
+                return `rgb(${r}, ${g}, ${b})`;
+            }
+        }
+
+        function render() {
+            const tt = document.getElementById('timetable'), tg = document.getElementById('trackerGrid');
+            tt.innerHTML = ''; tg.innerHTML = '';
+            let totalTasks = 0;
+
+            subjects.forEach(s => {
+                const diff = new Date(s.date) - new Date();
+                const d = Math.max(0, Math.floor(diff/86400000));
+                tt.innerHTML += `<div class="tt-item"><span>${s.name}</span><b>${d}D</b></div>`;
+
+                const r = localStorage.getItem(s.id+'_rev')==='true', p = localStorage.getItem(s.id+'_pyq')==='true', n = localStorage.getItem(s.id+'_nav')==='true', e = localStorage.getItem(s.id+'_ext')==='true', f = localStorage.getItem(s.id+'_final')==='true';
+                const count = [r,p,n,e,f].filter(Boolean).length;
+                totalTasks += count;
+                const pct = (count/5)*100;
+                const subColor = getDynamicColor(pct);
+
+                // Task 4 Label Logic
+                let task4Label = "CONCEPTS";
+                if(s.type === 'language') task4Label = "GRAMMAR";
+                if(s.type === 'math') task4Label = "HOTS";
+
+                tg.innerHTML += `
+                    <div class="sub-card ${f ? 'fully-done' : ''}">
+                        <div style="display:flex; justify-content:space-between; font-weight:800;">
+                            <span style="${f?'color:var(--gold)':''}">${s.name} ${f?'🎖️':''}</span>
+                            <span style="color:${subColor}">${Math.round(pct)}%</span>
+                        </div>
+                        <div class="bar-outer sub-bar-outer">
+                            <div class="sub-fill" style="width:${pct}%; background:${subColor}; box-shadow: 0 0 15px ${subColor}88;"></div>
+                        </div>
+                        <button class="task-btn ${r?'active':''}" onclick="toggleTask('${s.id}','rev')">REVISION <span>${r?'✓':'+'}</span></button>
+                        <button class="task-btn ${p?'active':''}" onclick="toggleTask('${s.id}','pyq')">PYQ <span>${p?'✓':'+'}</span></button>
+                        <button class="task-btn ${n?'active':''}" onclick="toggleTask('${s.id}','nav')">NAVNEET <span>${n?'✓':'+'}</span></button>
+                        <button class="task-btn ${e?'active':''}" onclick="toggleTask('${s.id}','ext')">${task4Label} <span>${e?'✓':'+'}</span></button>
+                        ${[r,p,n,e].filter(Boolean).length >= 4 ? `<button class="task-btn final-revise-btn ${f?'active':''}" onclick="toggleTask('${s.id}','final')">${f ? 'BOARD READY ✅' : '⚡ FINAL REVISION'}</button>` : ''}
+                    </div>`;
+            });
+
+            const masterPct = Math.round((totalTasks / (subjects.length * 5)) * 100);
+            const fillEl = document.getElementById('masterFill');
+            fillEl.style.width = masterPct + '%';
+            document.getElementById('masterPct').innerText = masterPct + '%';
+            
+            const mColor = masterPct === 100 ? 'var(--gold)' : getDynamicColor(masterPct);
+            fillEl.style.backgroundColor = mColor;
+            fillEl.style.boxShadow = `0 0 30px ${mColor}`;
+
+            if(masterPct === 100 && !window.won) {
+                window.won = true;
+                setTimeout(() => {
+                    document.getElementById('finalPop').classList.add('active');
+                    document.body.classList.add('victory-shake');
+                    playVictoryAnthem();
+                    victoryInterval = setInterval(() => {
+                        playVictoryAnthem();
+                        confetti({ particleCount: 150, spread: 180, origin: { y: 0.5 } });
+                        confetti({ particleCount: 150, spread: 180, origin: { y: 0.7 }, colors: ['#fbbf24', '#ffffff'] });
+                    }, 800);
+                }, 800);
+            }
+        }
+
+        setInterval(() => {
+            const diff = new Date('2026-02-23T11:00:00') - new Date();
+            const d = Math.max(0, Math.floor(diff/86400000)), h = Math.max(0, Math.floor((diff%86400000)/3600000)), m = Math.max(0, Math.floor((diff%3600000)/60000)), s = Math.max(0, Math.floor((diff%60000)/1000));
+            document.getElementById('global-timer').innerText = `${d}d : ${h}h : ${m}m : ${s}s`;
+        }, 1000);
+
+        const canvas = document.getElementById('bg-canvas'), ctx = canvas.getContext('2d');
+        let parts = [];
+        function initBg() {
+            canvas.width = window.innerWidth; canvas.height = window.innerHeight;
+            parts = Array.from({length: 60}, () => ({ 
+                x: Math.random()*canvas.width, 
+                y: Math.random()*canvas.height, 
+                l: Math.random()*20+10, 
+                s: Math.random()*3+1,
+                a: Math.random() * 0.3 + 0.1
+            }));
+        }
+        function animateBg() {
+            ctx.clearRect(0,0,canvas.width,canvas.height);
+            parts.forEach(p => {
+                ctx.beginPath(); 
+                ctx.strokeStyle = window.won ? `rgba(251, 191, 36, ${p.a})` : `rgba(56, 189, 248, ${p.a})`;
+                ctx.lineWidth = window.won ? 3 : 1;
+                ctx.moveTo(p.x, p.y); 
+                const length = window.won ? p.l * 10 : p.l;
+                ctx.lineTo(p.x + length, p.y); 
+                ctx.stroke();
+                
+                p.x += (window.won ? p.s * 15 : p.s); 
+                if(p.x > canvas.width) p.x = -150;
+            });
+            requestAnimationFrame(animateBg);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => { initBg(); animateBg(); render(); });
+        window.addEventListener('resize', initBg);
+    </script>
+</body>
+</html>
